@@ -21,7 +21,7 @@ const styles = {
     margin: 0,
     fontSize: '18px',
     fontWeight: '600',
-    color: '#e94560',
+    color: '#17f01bff',
   },
   count: {
     fontSize: '12px',
