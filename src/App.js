@@ -208,6 +208,7 @@ export default function App() {
 
   const handleSelect = () => {
     setSelectingMode((prev) => !prev);
+    setSelectedList([]);
   }
 
   const toggleSelect = (id) => {
