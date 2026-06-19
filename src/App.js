@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
+// all the styles in one place, easier to change colors and stuff later
 const styles = {
   app: {
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    backgroundColor: '#1a1a2e',
-    color: '#e0e0e0',
+    backgroundColor: '#1c1c1e',
+    color: '#f0f0f0',
     minHeight: '100vh',
     padding: '0',
     margin: '0',
   },
   header: {
-    backgroundColor: '#16213e',
+    backgroundColor: '#2c2c2e',
     padding: '16px 20px',
-    borderBottom: '1px solid #9ab0cbff',
+    borderBottom: '1px solid #3a3a3c',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -21,11 +22,11 @@ const styles = {
     margin: 0,
     fontSize: '18px',
     fontWeight: '600',
-    color: '#17f01bff',
+    color: '#ffffff',
   },
   count: {
     fontSize: '12px',
-    color: '#f9f5f5ff',
+    color: '#888',
   },
   list: {
     padding: '12px',
@@ -34,19 +35,21 @@ const styles = {
     overflowY: 'auto',
     maxHeight: 'calc(100vh - 60px)',
   },
+  // default card style
   itemBase: {
-    backgroundColor: '#16213e',
-    border: '1px solid #0f3460',
+    backgroundColor: '#2c2c2e',
+    border: '1px solid #3a3a3c',
     borderRadius: '8px',
     padding: '12px 14px',
     marginBottom: '8px',
     cursor: 'pointer',
     transition: 'all 0.15s ease',
-    position: 'relative',
+    position: 'relative', // needed so the checkbox can be positioned inside the card
   },
+  // this gets merged on top of itemBase when the card is hovered
   itemHover: {
-    backgroundColor: '#0f3460',
-    borderColor: '#e94560',
+    backgroundColor: '#3a3a3c',
+    borderColor: '#636366',
   },
   itemText: {
     fontSize: '13px',
@@ -65,17 +68,19 @@ const styles = {
   },
   timestamp: {
     fontSize: '11px',
-    color: '#666',
+    color: '#636366',
   },
+  // "click to copy" hint - hidden by default, shows on hover
   copyHint: {
     fontSize: '11px',
-    color: '#e94560',
+    color: '#aaaaaa',
     opacity: 0,
     transition: 'opacity 0.15s ease',
   },
   copyHintVisible: {
     opacity: 1,
   },
+  // green "Copied!" badge that shows for 1.5s after clicking
   copiedBadge: {
     fontSize: '11px',
     color: '#4caf50',
@@ -91,8 +96,8 @@ const styles = {
   },
   selectBtn: {
     background: 'none',
-    border: '1px solid #333',
-    color: '#888',
+    border: '1px solid #3a3a3c',
+    color: '#aaa',
     borderRadius: '4px',
     padding: '4px 10px',
     fontSize: '12px',
@@ -100,6 +105,7 @@ const styles = {
   },
 };
 
+// converts a date to a human readable string like "3m ago" or "just now"
 function formatTime(date) {
   const now = new Date();
   const diff = now - date;
@@ -109,58 +115,76 @@ function formatTime(date) {
   return date.toLocaleDateString();
 }
 
+// a single clipboard card
+// gets: the item data, copy function, and selection-related stuff from App
 function ClipboardItem({ item, onCopy, selectingMode, isSelected, onToggle }) {
   const [hovered, setHovered] = useState(false);
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  
+
+  // copies the text back to clipboard and shows "Copied!" for 1.5s
   const handleClick = async () => {
     await onCopy(item.text);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
 
+  // toggles between showing full text vs first 100 chars
+  // stopPropagation so clicking expand doesn't also trigger copy
   const handleExpand = (e) => {
-    e.stopPropagation(); // Prevents the click from triggering the copy action.
+    e.stopPropagation();
     setExpanded((prev) => !prev);
-  }
-
+  };
 
   return (
     <li
       style={{ ...styles.itemBase, ...(hovered ? styles.itemHover : {}) }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      // in select mode clicking the card toggles the checkbox, otherwise it copies
       onClick={selectingMode ? () => onToggle(item.id) : handleClick}
     >
-    {selectingMode && (
-      <input
-    type="checkbox"
-    checked={isSelected}
-    onChange={() => onToggle(item.id)}
-    style={{ position: 'absolute', top: '10px', right: '10px' }}
-      />
-    )}
+      {/* checkbox only shows in select mode, anchored to top right of the card */}
+      {selectingMode && (
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={() => onToggle(item.id)}
+          style={{ position: 'absolute', top: '10px', right: '10px' }}
+        />
+      )}
+
+      {/* show full text if expanded, otherwise cap at 100 chars */}
       <div style={styles.itemText}>
-        {expanded ? item.text : item.text.length > 100 ? item.text.slice(0, 100) + '...' : item.text}
-        </div>
-      <div style={{ fontSize: '11px', color: '#555', marginTop: '4px' }}>
-            {item.text.length} chars
+        {expanded
+          ? item.text
+          : item.text.length > 100
+          ? item.text.slice(0, 100) + '...'
+          : item.text}
       </div>
-<div 
-  onClick={handleExpand}
-  style={{ 
-    textAlign: 'center', 
-    color: '#555', 
-    fontSize: '10px',
-    marginTop: '4px',
-    cursor: 'pointer',
-    transition: 'transform 0.2s ease',
-    transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-  }}
->
-  ▼
-</div>
+
+      {/* character count */}
+      <div style={{ fontSize: '11px', color: '#555', marginTop: '4px' }}>
+        {item.text.length} chars
+      </div>
+
+      {/* expand/collapse arrow - rotates 180deg when expanded */}
+      <div
+        onClick={handleExpand}
+        style={{
+          textAlign: 'center',
+          color: '#555',
+          fontSize: '10px',
+          marginTop: '4px',
+          cursor: 'pointer',
+          transition: 'transform 0.2s ease',
+          transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+        }}
+      >
+        ▼
+      </div>
+
+      {/* bottom row: timestamp on left, copy hint or "Copied!" on right */}
       <div style={styles.itemMeta}>
         <span style={styles.timestamp}>{formatTime(item.time)}</span>
         {copied ? (
@@ -180,25 +204,37 @@ export default function App() {
   const [selectingMode, setSelectingMode] = useState(false);
   const [selectedList, setSelectedList] = useState([]);
   const [hovered, setHovered] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [currentView, setCurrentView] = useState('history'); // 'history' | 'bench' | 'search'
 
+  // adds a new clipboard entry to the top of the list
+  // skips duplicates and keeps max 50 items
   const addToHistory = useCallback((text) => {
     if (!text || !text.trim()) return;
     setHistory((prev) => {
-      if (prev.length > 0 && prev[0].text === text) return prev;  // Prevents duplicates.
-      const entry = { id: Date.now(), text, time: new Date() };   // Creates a new entry with a unique ID(timestamp because Date.now() is unique for each entry) and timestamp.
-      return [entry, ...prev].slice(0, 50); //keeps only the latest 50 entries in history.
+      if (prev.length > 0 && prev[0].text === text) return prev;
+      const entry = { id: Date.now(), text, time: new Date() };
+      return [entry, ...prev].slice(0, 50);
     });
   }, []);
 
+  // runs once when the app loads
+  // grabs current clipboard and starts listening for changes
   useEffect(() => {
     if (!window.electronAPI) return;
 
-    window.electronAPI.getClipboard().then((text) => addToHistory(text)); // Fetches the current clipboard content when the app starts and adds it to history.
+    // grab whatever is on the clipboard right now
+    window.electronAPI.getClipboard().then((text) => addToHistory(text));
 
+    // listen for future clipboard changes - electron calls addToHistory every time something is copied
     const removeListener = window.electronAPI.onClipboardUpdate(addToHistory);
-    return removeListener; // Cleans up the listener when the component unmounts.
+
+    // when the app closes, stop listening
+    return removeListener;
   }, [addToHistory]);
 
+  // writes text back to the system clipboard
+  // uses electron if available, falls back to browser API
   const handleCopy = async (text) => {
     if (window.electronAPI) {
       await window.electronAPI.writeClipboard(text);
@@ -207,77 +243,149 @@ export default function App() {
     }
   };
 
+  // toggles select mode on/off and clears any checked items
   const handleSelect = () => {
     setSelectingMode((prev) => !prev);
     setSelectedList([]);
-  }
+  };
 
+  // adds or removes an item id from the selected list
   const toggleSelect = (id) => {
-  setSelectedList((prev) =>
-    prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-  );
-};
+    setSelectedList((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
 
   return (
     <div style={styles.app}>
-      <header style={styles.header} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+
+      {/* header - always visible regardless of which view you're on */}
+      <header
+        style={styles.header}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
         <h1 style={styles.title}>Clipboard Manager</h1>
+
+        {/* hamburger menu button */}
+        <button
+          onClick={() => setMenuOpen((prev) => !prev)}
+          style={{ background: 'none', border: 'none', color: '#888', fontSize: '20px', cursor: 'pointer' }}
+        >
+          ☰
+        </button>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={styles.count}>{history.length} items</span>
           {history.length > 0 && (
-            <button style={hovered ? { ...styles.selectBtn, background: '#12a120ff', color: '#fff' } : styles.selectBtn} onClick={handleSelect}>
+            // select button changes color when header is hovered
+            <button
+              style={hovered ? { ...styles.selectBtn, background: '#3a3a3c', color: '#fff' } : styles.selectBtn}
+              onClick={handleSelect}
+            >
               {selectingMode ? 'Cancel' : 'Select'}
             </button>
           )}
         </div>
       </header>
 
-      {history.length === 0 ? (
-        <div style={styles.empty}>
-          <div style={styles.emptyIcon}>📋</div>
-          <div>No clipboard history yet.</div>
-          <div style={{ marginTop: '8px', fontSize: '12px' }}>
-            Copy something to get started.
-          </div>
-        </div>
-      ) : (
+      {/* dropdown menu - shows when hamburger is clicked */}
+      {menuOpen && (
         <div>
-        <ul style={styles.list}>
-          {history.map((item) => (
-            <ClipboardItem key={item.id} item={item} onCopy={handleCopy} isSelected={selectedList.includes(item.id)} selectingMode={selectingMode} onToggle={toggleSelect} />
-          ))}
-        </ul>
-        
-{selectingMode && (
-  <div>
-    <button
-      style={{ background: 'none',
-    border: '1px solid #333',
-    color: '#888',
-    borderRadius: '4px',
-    padding: '4px 10px',
-    fontSize: '12px',
-    cursor: 'pointer',position: 'fixed', bottom: '20px', left: '20px',}}
-      onClick={() => setSelectedList(history.map((item) => item.id))}
-    >
-      Select All
-    </button>
-
-    <button 
-      style={{ position: 'fixed', bottom: '20px', right: '20px', fontSize: '20px', background: 'none', border: 'none', cursor: 'pointer' }}
-      onClick={() => {
-        setHistory((prev) => prev.filter((item) => !selectedList.includes(item.id)));
-        setSelectedList([]);
-        setSelectingMode(false);
-      }}
-    >
-      🗑️
-    </button>
-  </div>
-)}
-    </div>
-  
+          <button onClick={() => { setCurrentView('history'); setMenuOpen(false); }}>
+            History
+          </button>
+          <button onClick={() => { setCurrentView('bench'); setMenuOpen(false); }}>
+            Concat Bench
+          </button>
+          <button onClick={() => { setCurrentView('search'); setMenuOpen(false); }}>
+            Search
+          </button>
+        </div>
       )}
+
+      {/* history view */}
+      {currentView === 'history' && (
+        <div>
+          {history.length === 0 ? (
+            // empty state
+            <div style={styles.empty}>
+              <div style={styles.emptyIcon}>📋</div>
+              <div>No clipboard history yet.</div>
+              <div style={{ marginTop: '8px', fontSize: '12px' }}>
+                Copy something to get started.
+              </div>
+            </div>
+          ) : (
+            <div>
+              <ul style={styles.list}>
+                {history.map((item) => (
+                  <ClipboardItem
+                    key={item.id}
+                    item={item}
+                    onCopy={handleCopy}
+                    isSelected={selectedList.includes(item.id)}
+                    selectingMode={selectingMode}
+                    onToggle={toggleSelect}
+                  />
+                ))}
+              </ul>
+
+              {/* select all and trash buttons - only show in select mode */}
+              {selectingMode && (
+                <div>
+                  <button
+                    style={{
+                      background: 'none',
+                      border: '1px solid #333',
+                      color: '#888',
+                      borderRadius: '4px',
+                      padding: '4px 10px',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      position: 'fixed',
+                      bottom: '20px',
+                      left: '20px',
+                    }}
+                    onClick={() => setSelectedList(history.map((item) => item.id))}
+                  >
+                    Select All
+                  </button>
+
+                  <button
+                    style={{ position: 'fixed', bottom: '20px', right: '20px', fontSize: '20px', background: 'none', border: 'none', cursor: 'pointer' }}
+                    onClick={() => {
+                      // remove only the selected items from history
+                      setHistory((prev) => prev.filter((item) => !selectedList.includes(item.id)));
+                      setSelectedList([]);
+                      setSelectingMode(false);
+                    }}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* concat bench view - coming soon */}
+      {currentView === 'bench' && (
+        <div>
+          <h2 style={{ padding: '20px', color: '#ffffff' }}>Concat Bench</h2>
+          <p style={{ padding: '0 20px', color: '#e0e0e0' }}>This feature is under development.</p>
+        </div>
+      )}
+
+      {/* search view - coming soon */}
+      {currentView === 'search' && (
+        <div>
+          <h2 style={{ padding: '20px', color: '#ffffff' }}>Search</h2>
+          <p style={{ padding: '0 20px', color: '#e0e0e0' }}>This feature is under development.</p>
+        </div>
+      )}
+
     </div>
   );
 }
