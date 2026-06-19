@@ -298,9 +298,6 @@ export default function App() {
           <button onClick={() => { setCurrentView('bench'); setMenuOpen(false); }}>
             Concat Bench
           </button>
-          <button onClick={() => { setCurrentView('search'); setMenuOpen(false); }}>
-            Search
-          </button>
         </div>
       )}
 
@@ -378,13 +375,6 @@ export default function App() {
         </div>
       )}
 
-      {/* search view - coming soon */}
-      {currentView === 'search' && (
-        <div>
-          <h2 style={{ padding: '20px', color: '#ffffff' }}>Search</h2>
-          <p style={{ padding: '0 20px', color: '#e0e0e0' }}>This feature is under development.</p>
-        </div>
-      )}
 
     </div>
   );
