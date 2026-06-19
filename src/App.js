@@ -179,6 +179,7 @@ export default function App() {
   const [history, setHistory] = useState([]);
   const [selectingMode, setSelectingMode] = useState(false);
   const [selectedList, setSelectedList] = useState([]);
+  const [hovered, setHovered] = useState(false);
 
   const addToHistory = useCallback((text) => {
     if (!text || !text.trim()) return;
@@ -219,12 +220,12 @@ export default function App() {
 
   return (
     <div style={styles.app}>
-      <header style={styles.header}>
+      <header style={styles.header} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
         <h1 style={styles.title}>Clipboard Manager</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={styles.count}>{history.length} items</span>
           {history.length > 0 && (
-            <button style={styles.selectBtn} onClick={handleSelect}>
+            <button style={hovered ? { ...styles.selectBtn, background: '#12a120ff', color: '#fff' } : styles.selectBtn} onClick={handleSelect}>
               {selectingMode ? 'Cancel' : 'Select'}
             </button>
           )}
