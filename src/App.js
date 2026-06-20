@@ -117,10 +117,11 @@ function formatTime(date) {
 
 // a single clipboard card
 // gets: the item data, copy function, and selection-related stuff from App
-function ClipboardItem({ item, onCopy, selectingMode, isSelected, onToggle }) {
+function ClipboardItem({ item, onCopy, selectingMode, isSelected, onToggle, selectionOrder }) {
   const [hovered, setHovered] = useState(false);
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  
 
   // copies the text back to clipboard and shows "Copied!" for 1.5s
   const handleClick = async () => {
@@ -143,16 +144,31 @@ function ClipboardItem({ item, onCopy, selectingMode, isSelected, onToggle }) {
       onMouseLeave={() => setHovered(false)}
       // in select mode clicking the card toggles the checkbox, otherwise it copies
       onClick={selectingMode ? () => onToggle(item.id) : handleClick}
+      
     >
-      {/* checkbox only shows in select mode, anchored to top right of the card */}
-      {selectingMode && (
-        <input
-          type="checkbox"
-          checked={isSelected}
-          onChange={() => onToggle(item.id)}
-          style={{ position: 'absolute', top: '10px', right: '10px' }}
-        />
-      )}
+    {selectingMode && (
+      <div
+        onClick={(e) => { e.stopPropagation(); onToggle(item.id); }}
+        style={{
+          position: 'absolute',
+          top: '10px',
+          right: '10px',
+          width: '20px',
+          height: '20px',
+          borderRadius: '50%',
+          border: '1px solid #636366',
+          backgroundColor: isSelected ? '#3a3a3c' : 'transparent',
+          color: '#fff',
+          fontSize: '11px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {
+        isSelected ? selectionOrder : ''}
+      </div>
+    )}
 
       {/* show full text if expanded, otherwise cap at 100 chars */}
       <div style={styles.itemText}>
@@ -206,6 +222,8 @@ export default function App() {
   const [hovered, setHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentView, setCurrentView] = useState('history'); // 'history' | 'bench' | 'search'
+  const [benchText, setBenchText] = useState('');
+  const [copied, setCopied] = useState(false);
 
   // adds a new clipboard entry to the top of the list
   // skips duplicates and keeps max 50 items
@@ -291,13 +309,34 @@ export default function App() {
 
       {/* dropdown menu - shows when hamburger is clicked */}
       {menuOpen && (
-        <div>
-          <button onClick={() => { setCurrentView('history'); setMenuOpen(false); }}>
-            History
-          </button>
-          <button onClick={() => { setCurrentView('bench'); setMenuOpen(false); }}>
-            Concat Bench
-          </button>
+        <div style={{
+          backgroundColor: '#2c2c2e',
+          borderBottom: '1px solid #3a3a3c',
+          padding: '8px 0',
+        }}>
+          {[
+            { label: '📋  History', view: 'history' },
+            { label: '⌨️  Concat Bench', view: 'bench' },
+          ].map(({ label, view }) => (
+            <button
+              key={view}
+              onClick={() => { setCurrentView(view); setMenuOpen(false); }}
+              style={{
+                display: 'block',
+                width: '100%',
+                background: currentView === view ? '#3a3a3c' : 'none',
+                border: 'none',
+                color: currentView === view ? '#ffffff' : '#aaa',
+                padding: '10px 20px',
+                fontSize: '13px',
+                textAlign: 'left',
+                cursor: 'pointer',
+                fontWeight: currentView === view ? '600' : '400',
+              }}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       )}
 
@@ -324,6 +363,7 @@ export default function App() {
                     isSelected={selectedList.includes(item.id)}
                     selectingMode={selectingMode}
                     onToggle={toggleSelect}
+                    selectionOrder={selectedList.indexOf(item.id) + 1}
                   />
                 ))}
               </ul>
@@ -348,7 +388,30 @@ export default function App() {
                   >
                     Select All
                   </button>
-
+                  <button
+                    style={{
+                      background: 'none',
+                      border: '1px solid #333',
+                      color: '#888',
+                      borderRadius: '4px',
+                      padding: '4px 10px',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      position: 'fixed',
+                      bottom: '20px',
+                      left: '150px',
+                    }}
+                    onClick={() => {
+                      // add selected items to bench
+                      const selectedItems = history.filter((item) => selectedList.includes(item.id));
+                      const concatenatedText = selectedItems.map((item) => item.text).join('\n\n');
+                      setBenchText(concatenatedText);
+                      setCurrentView('bench');
+                      setMenuOpen(false);
+                      setSelectingMode(false);
+                    }}>
+                    Add to Bench
+                  </button>
                   <button
                     style={{ position: 'fixed', bottom: '20px', right: '20px', fontSize: '20px', background: 'none', border: 'none', cursor: 'pointer' }}
                     onClick={() => {
@@ -367,11 +430,76 @@ export default function App() {
         </div>
       )}
 
-      {/* concat bench view - coming soon */}
+      {/* concat bench view */}
       {currentView === 'bench' && (
-        <div>
-          <h2 style={{ padding: '20px', color: '#ffffff' }}>Concat Bench</h2>
-          <p style={{ padding: '0 20px', color: '#e0e0e0' }}>This feature is under development.</p>
+        <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 61px)', boxSizing: 'border-box' }}>
+
+          {/* title + char count */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <h2 style={{ margin: 0, color: '#ffffff', fontSize: '16px', fontWeight: '600' }}>Concat Bench</h2>
+            <span style={{ fontSize: '11px', color: '#636366' }}>{benchText.length} chars</span>
+          </div>
+
+          {/* the editable textarea - takes up all available space */}
+          <textarea
+            value={benchText}
+            onChange={(e) => setBenchText(e.target.value)}
+            placeholder="Select items from History and click 'Add to Bench'..."
+            style={{
+              flex: 1,
+              width: '100%',
+              backgroundColor: '#2c2c2e',
+              color: '#f0f0f0',
+              border: '1px solid #3a3a3c',
+              borderRadius: '8px',
+              padding: '14px',
+              fontSize: '13px',
+              lineHeight: '1.6',
+              resize: 'none',
+              outline: 'none',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+              boxSizing: 'border-box',
+            }}
+          />
+
+          {/* bottom buttons */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', gap: '8px' }}>
+            <button
+              style={{
+                flex: 1,
+                background: 'none',
+                border: '1px solid #3a3a3c',
+                color: '#aaa',
+                borderRadius: '6px',
+                padding: '8px',
+                fontSize: '12px',
+                cursor: 'pointer',
+              }}
+              onClick={() => setBenchText('')}
+            >
+              Clear
+            </button>
+            <button
+              style={{
+                flex: 1,
+                background: '#3a3a3c',
+                border: '1px solid #636366',
+                color: '#ffffff',
+                borderRadius: '6px',
+                padding: '8px',
+                fontSize: '12px',
+                cursor: 'pointer',
+                fontWeight: '500',
+              }}
+              onClick={() => handleCopy(benchText).then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1500);
+              })}
+            >
+              {copied && benchText !== '' ? <span style={styles.copiedBadge}>Copied!</span> : 'Copy All'}
+            </button>
+          </div>
+
         </div>
       )}
 
