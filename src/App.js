@@ -368,21 +368,31 @@ export default function App() {
                 ))}
               </ul>
 
-              {/* select all and trash buttons - only show in select mode */}
+              {/* select all, add to bench, and trash - only show in select mode */}
               {selectingMode && (
-                <div>
+                <div style={{
+                  position: 'fixed',
+                  bottom: '0',
+                  left: '0',
+                  right: '0',
+                  backgroundColor: '#2c2c2e',
+                  borderTop: '1px solid #3a3a3c',
+                  padding: '12px 16px',
+                  display: 'flex',
+                  gap: '8px',
+                  alignItems: 'center',
+                }}>
+                  {/* left side: select all + add to bench */}
                   <button
                     style={{
+                      flex: 1,
                       background: 'none',
-                      border: '1px solid #333',
-                      color: '#888',
-                      borderRadius: '4px',
-                      padding: '4px 10px',
+                      border: '1px solid #3a3a3c',
+                      color: '#aaa',
+                      borderRadius: '6px',
+                      padding: '8px',
                       fontSize: '12px',
                       cursor: 'pointer',
-                      position: 'fixed',
-                      bottom: '20px',
-                      left: '20px',
                     }}
                     onClick={() => setSelectedList(history.map((item) => item.id))}
                   >
@@ -390,20 +400,19 @@ export default function App() {
                   </button>
                   <button
                     style={{
-                      background: 'none',
-                      border: '1px solid #333',
-                      color: '#888',
-                      borderRadius: '4px',
-                      padding: '4px 10px',
+                      flex: 1,
+                      background: '#3a3a3c',
+                      border: '1px solid #636366',
+                      color: '#fff',
+                      borderRadius: '6px',
+                      padding: '8px',
                       fontSize: '12px',
                       cursor: 'pointer',
-                      position: 'fixed',
-                      bottom: '20px',
-                      left: '150px',
+                      fontWeight: '500',
                     }}
                     onClick={() => {
-                      // add selected items to bench
-                      const selectedItems = history.filter((item) => selectedList.includes(item.id));
+                      // add selected items to bench in click order
+                      const selectedItems = selectedList.map((id) => history.find((item) => item.id === id));
                       const concatenatedText = selectedItems.map((item) => item.text).join('\n\n');
                       setBenchText(concatenatedText);
                       setCurrentView('bench');
@@ -412,8 +421,10 @@ export default function App() {
                     }}>
                     Add to Bench
                   </button>
+
+                  {/* right side: trash */}
                   <button
-                    style={{ position: 'fixed', bottom: '20px', right: '20px', fontSize: '20px', background: 'none', border: 'none', cursor: 'pointer' }}
+                    style={{ background: 'none', border: '1px solid #3a3a3c', borderRadius: '6px', padding: '8px 12px', fontSize: '16px', cursor: 'pointer' }}
                     onClick={() => {
                       // remove only the selected items from history
                       setHistory((prev) => prev.filter((item) => !selectedList.includes(item.id)));
