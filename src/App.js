@@ -4,32 +4,34 @@ import React, { useState, useEffect, useCallback } from 'react';
 const styles = {
   app: {
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#141415',
     color: '#f0f0f0',
     minHeight: '100vh',
     padding: '0',
     margin: '0',
   },
   header: {
-    backgroundColor: '#2c2c2e',
-    padding: '16px 20px',
-    borderBottom: '1px solid #3a3a3c',
+    backgroundColor: '#1e1e20',
+    padding: '14px 16px',
+    borderBottom: '1px solid #2a2a2d',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: '12px',
   },
   title: {
     margin: 0,
-    fontSize: '18px',
+    fontSize: '16px',
     fontWeight: '600',
     color: '#ffffff',
+    letterSpacing: '-0.3px',
   },
   count: {
-    fontSize: '12px',
-    color: '#888',
+    fontSize: '11px',
+    color: '#555',
   },
   list: {
-    padding: '12px',
+    padding: '10px',
     listStyle: 'none',
     margin: 0,
     overflowY: 'auto',
@@ -37,43 +39,44 @@ const styles = {
   },
   // default card style
   itemBase: {
-    backgroundColor: '#2c2c2e',
-    border: '1px solid #3a3a3c',
-    borderRadius: '8px',
+    backgroundColor: '#1e1e20',
+    border: '1px solid #2a2a2d',
+    borderRadius: '10px',
     padding: '12px 14px',
-    marginBottom: '8px',
+    marginBottom: '6px',
     cursor: 'pointer',
-    transition: 'all 0.15s ease',
-    position: 'relative', // needed so the checkbox can be positioned inside the card
+    transition: 'background 0.1s ease, border-color 0.1s ease',
+    position: 'relative', // needed so the order badge can be positioned inside the card
   },
   // this gets merged on top of itemBase when the card is hovered
   itemHover: {
-    backgroundColor: '#3a3a3c',
-    borderColor: '#636366',
+    backgroundColor: '#28282c',
+    borderColor: '#424246',
   },
   itemText: {
     fontSize: '13px',
-    lineHeight: '1.4',
+    lineHeight: '1.5',
     wordBreak: 'break-all',
     whiteSpace: 'pre-wrap',
     overflow: 'hidden',
     display: '-webkit-box',
     WebkitBoxOrient: 'vertical',
+    color: '#e8e8e8',
   },
   itemMeta: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: '8px',
+    marginTop: '10px',
   },
   timestamp: {
     fontSize: '11px',
-    color: '#636366',
+    color: '#555',
   },
   // "click to copy" hint - hidden by default, shows on hover
   copyHint: {
     fontSize: '11px',
-    color: '#aaaaaa',
+    color: '#666',
     opacity: 0,
     transition: 'opacity 0.15s ease',
   },
@@ -84,22 +87,24 @@ const styles = {
   copiedBadge: {
     fontSize: '11px',
     color: '#4caf50',
+    fontWeight: '500',
   },
   empty: {
     textAlign: 'center',
-    padding: '60px 20px',
-    color: '#555',
+    padding: '80px 20px',
+    color: '#444',
   },
   emptyIcon: {
-    fontSize: '48px',
-    marginBottom: '12px',
+    fontSize: '44px',
+    marginBottom: '14px',
+    opacity: 0.5,
   },
   selectBtn: {
     background: 'none',
-    border: '1px solid #3a3a3c',
-    color: '#aaa',
-    borderRadius: '4px',
-    padding: '4px 10px',
+    border: '1px solid #2a2a2d',
+    color: '#888',
+    borderRadius: '6px',
+    padding: '5px 12px',
     fontSize: '12px',
     cursor: 'pointer',
   },
@@ -114,10 +119,19 @@ function formatTime(date) {
   if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
   return date.toLocaleDateString();
 }
+function highlightMatch(text, query) {
+  if (!query) return text;
+  const parts = text.split(new RegExp(`(${query})`, 'gi'));
+  return parts.map((part, i) =>
+    part.toLowerCase() === query.toLowerCase()
+      ? <mark key={i} style={{ backgroundColor: '#f5a623', color: '#000', borderRadius: '2px', padding: '0 1px' }}>{part}</mark>
+      : part
+  );
+}
 
 // a single clipboard card
 // gets: the item data, copy function, and selection-related stuff from App
-function ClipboardItem({ item, onCopy, selectingMode, isSelected, onToggle, selectionOrder }) {
+function ClipboardItem({ item, onCopy, selectingMode, isSelected, onToggle, selectionOrder, searchQuery }) {
   const [hovered, setHovered] = useState(false);
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -168,37 +182,53 @@ function ClipboardItem({ item, onCopy, selectingMode, isSelected, onToggle, sele
         {
         isSelected ? selectionOrder : ''}
       </div>
-    )}
+    )} 
 
       {/* show full text if expanded, otherwise cap at 100 chars */}
-      <div style={styles.itemText}>
-        {expanded
-          ? item.text
-          : item.text.length > 100
-          ? item.text.slice(0, 100) + '...'
-          : item.text}
-      </div>
+<div style={styles.itemText}>
+  {expanded
+    ? highlightMatch(item.text, searchQuery)
+    : highlightMatch(
+        item.text.length > 100 ? item.text.slice(0, 100) + '...' : item.text,
+        searchQuery
+      )}
+</div>
 
       {/* character count */}
       <div style={{ fontSize: '11px', color: '#555', marginTop: '4px' }}>
         {item.text.length} chars
       </div>
 
-      {/* expand/collapse arrow - rotates 180deg when expanded */}
-      <div
-        onClick={handleExpand}
-        style={{
-          textAlign: 'center',
-          color: '#555',
-          fontSize: '10px',
-          marginTop: '4px',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease',
-          transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-        }}
-      >
-        ▼
-      </div>
+      {/* expand/collapse button - only shows when text is long enough to need it */}
+      {item.text.length > 100 && (
+        <div
+          onClick={handleExpand}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '4px',
+            marginTop: '8px',
+            padding: '4px 0',
+            borderTop: '1px solid #2a2a2d',
+            color: '#666',
+            fontSize: '11px',
+            cursor: 'pointer',
+            transition: 'color 0.15s ease',
+            userSelect: 'none',
+          }}
+          onMouseEnter={e => e.currentTarget.style.color = '#aaa'}
+          onMouseLeave={e => e.currentTarget.style.color = '#666'}
+        >
+          <span style={{
+            display: 'inline-block',
+            transition: 'transform 0.2s ease',
+            transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+            fontSize: '9px',
+          }}>▼</span>
+          <span>{expanded ? 'Show less' : 'Show more'}</span>
+        </div>
+      )}
 
       {/* bottom row: timestamp on left, copy hint or "Copied!" on right */}
       <div style={styles.itemMeta}>
@@ -224,6 +254,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState('history'); // 'history' | 'bench' | 'search'
   const [benchText, setBenchText] = useState('');
   const [copied, setCopied] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // adds a new clipboard entry to the top of the list
   // skips duplicates and keeps max 50 items
@@ -273,6 +304,17 @@ export default function App() {
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   };
+const filteredHistory = history
+  .filter((item) => item.text.toLowerCase().includes(searchQuery.toLowerCase()))
+  .map((item) => {
+    const text = item.text.toLowerCase();
+    const query = searchQuery.toLowerCase();
+    let score = 1;
+    if (text.startsWith(query)) score = 3;
+    else if (new RegExp(`\\b${query}\\b`).test(text)) score = 2;
+    return { ...item, score };
+  })
+  .sort((a, b) => b.score - a.score);
 
   return (
     <div style={styles.app}>
@@ -339,6 +381,7 @@ export default function App() {
           ))}
         </div>
       )}
+      
 
       {/* history view */}
       {currentView === 'history' && (
@@ -353,9 +396,29 @@ export default function App() {
               </div>
             </div>
           ) : (
+            
             <div>
+                    <div style={{ padding: '12px 16px', borderBottom: '1px solid #3a3a3c' }}>
+        <input
+          type="text"
+          placeholder="Search clipboard history..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{
+            width: '95%',
+            padding: '8px 12px',
+            borderRadius: '6px',
+            border: '1px solid #3a3a3c',
+            backgroundColor: '#2c2c2e',
+            color: '#f0f0f0',
+            fontSize: '13px',
+            outline: 'none',
+          }}
+        />
+      </div>
+              
               <ul style={styles.list}>
-                {history.map((item) => (
+                {filteredHistory.map((item) => (
                   <ClipboardItem
                     key={item.id}
                     item={item}
@@ -364,6 +427,7 @@ export default function App() {
                     selectingMode={selectingMode}
                     onToggle={toggleSelect}
                     selectionOrder={selectedList.indexOf(item.id) + 1}
+                    searchQuery={searchQuery}
                   />
                 ))}
               </ul>
