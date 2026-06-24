@@ -131,7 +131,12 @@ function highlightMatch(text, query) {
 
 // a single clipboard card
 // gets: the item data, copy function, and selection-related stuff from App
-function ClipboardItem({ item, onCopy, selectingMode, isSelected, onToggle, selectionOrder, searchQuery }) {
+function ClipboardItem({ item, 
+  onCopy, selectingMode, 
+  isSelected, onToggle, 
+  selectionOrder, searchQuery,
+  note, onNoteChange,
+  isFavorite, onToggleFavorite }) {
   const [hovered, setHovered] = useState(false);
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -183,9 +188,26 @@ function ClipboardItem({ item, onCopy, selectingMode, isSelected, onToggle, sele
         isSelected ? selectionOrder : ''}
       </div>
     )} 
-
+    {/* star button - gold when favorited, barely visible when not */}
+    <div
+      onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+      style={{
+        position: 'absolute',
+        top: '10px',
+        left: '12px',
+        cursor: 'pointer',
+        fontSize: '14px',
+        color: isFavorite ? '#f5a623' : '#908f8fff',
+        transition: 'color 0.2s ease, transform 0.15s ease',
+        transform: isFavorite ? 'scale(1.1)' : 'scale(1)',
+        lineHeight: 1,
+        userSelect: 'none',
+      }}
+    >
+      ★
+    </div>
       {/* show full text if expanded, otherwise cap at 100 chars */}
-<div style={styles.itemText}>
+<div style={{ ...styles.itemText, paddingLeft: '20px' }}>
   {expanded
     ? highlightMatch(item.text, searchQuery)
     : highlightMatch(
@@ -229,6 +251,26 @@ function ClipboardItem({ item, onCopy, selectingMode, isSelected, onToggle, sele
           <span>{expanded ? 'Show less' : 'Show more'}</span>
         </div>
       )}
+      <div style={{ marginTop: '8px' }}>
+        <input
+          type="text"
+          placeholder="Add a note..."
+          value={note}
+          onChange={(e) => onNoteChange(e.target.value)}
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            width: '100%',
+            padding: '6px 10px',
+            borderRadius: '6px',
+            border: '1px solid #2a2a2d',
+            backgroundColor: '#141415',
+            color: '#f0f0f0',
+            fontSize: '12px',
+            outline: 'none',
+            boxSizing: 'border-box',
+          }}
+        />
+      </div>
 
       {/* bottom row: timestamp on left, copy hint or "Copied!" on right */}
       <div style={styles.itemMeta}>
@@ -255,6 +297,8 @@ export default function App() {
   const [benchText, setBenchText] = useState('');
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [notes, setNotes] = useState({});
+  const [favorites, setFavorites] = useState({});
 
   // adds a new clipboard entry to the top of the list
   // skips duplicates and keeps max 50 items
@@ -315,6 +359,14 @@ const filteredHistory = history
     return { ...item, score };
   })
   .sort((a, b) => b.score - a.score);
+
+  const handleNoteChange = (id, value) => {
+    setNotes((prev) => ({ ...prev, [id]: value }));
+  };
+
+const toggleFavorite = (id) => {
+  setFavorites((prev) => ({ ...prev, [id]: !prev[id] }));
+};
 
   return (
     <div style={styles.app}>
@@ -428,6 +480,10 @@ const filteredHistory = history
                     onToggle={toggleSelect}
                     selectionOrder={selectedList.indexOf(item.id) + 1}
                     searchQuery={searchQuery}
+                    note={notes[item.id] || ''}
+                    onNoteChange={(value) => handleNoteChange(item.id, value)}
+                    isFavorite={favorites[item.id] || false}
+                    onToggleFavorite={() => toggleFavorite(item.id)}
                   />
                 ))}
               </ul>
