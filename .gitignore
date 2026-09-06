@@ -7,3 +7,9 @@ build
 .env.production.local
 dist
 .DS_Store
+
+# backend (Python/Flask)
+backend/venv
+backend/__pycache__
+backend/instance
+*.pyc
