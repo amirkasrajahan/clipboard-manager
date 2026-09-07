@@ -4,12 +4,12 @@ const isDev = require('electron-is-dev');
 
 let mainWindow;
 let lastClipboardContent = '';
-let clipboardInterval;
+let clipboardIntervalId;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 400,
-    height: 600,
+    width: 500,
+    height: 700,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -34,7 +34,7 @@ function createWindow() {
 }
 
 function startClipboardPolling() {
-  clipboardInterval = setInterval(() => {
+  clipboardIntervalId = setInterval(() => {
     const current = clipboard.readText();
     if (current && current !== lastClipboardContent) {
       lastClipboardContent = current;
@@ -42,7 +42,7 @@ function startClipboardPolling() {
         mainWindow.webContents.send('clipboard-update', current);
       }
     }
-  }, 2000);
+  }, 1000);
 }
 
 ipcMain.handle('get-clipboard', () => {
