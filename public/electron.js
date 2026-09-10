@@ -65,7 +65,7 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  clearInterval(clipboardInterval);
+  clearInterval(clipboardIntervalId);
   if (process.platform !== 'darwin') {
     app.quit();
   }

@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ClipboardItem } from './components/ClipboardItem';
 import './App.css';
 
+
+// this is the URL of the backend flask server. in production it runs on 5000, in dev mode it runs on 5000 too (but you have to start it manually with `npm run backend`).
 const API = 'http://localhost:5000';
 
 export default function App() {
@@ -13,8 +15,9 @@ export default function App() {
   const [benchText, setBenchText] = useState('');
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef(null)
 
-  // load history from the API on mount
+  // loads whatever's already saved in flask when the app starts (runs once, empty [] dep)
   useEffect(() => {
     fetch(`${API}/history`)
       .then((r) => r.json())
@@ -26,7 +29,9 @@ export default function App() {
       .catch(() => {}); // backend might not be running yet — fail silently
   }, []);
 
-  // save a new clipboard entry to the backend, then refresh the list
+  // this is what electron.js's clipboard-update event actually calls (see useEffect
+  // below). doesnt touch history state right away - sends to flask first and only
+  // updates the UI once flask sends back the saved row (with a real id + timestamp)
   const addToHistory = useCallback((text) => {
     if (!text || !text.trim()) return;
     fetch(`${API}/history`, {
@@ -45,13 +50,43 @@ export default function App() {
       .catch(() => {});
   }, []);
 
-  // listen for clipboard changes from Electron
+  // THIS is where electron actually connects to react. window.electronAPI comes from
+  // preload.js. onClipboardUpdate(addToHistory) makes addToHistory the callback that
+  // fires every time electron.js's polling loop sees a new clipboard value.
+  // also grabs whatever was already on the clipboard before the app even opened
   useEffect(() => {
-    if (!window.electronAPI) return;
+    if (!window.electronAPI) return; // so it doesnt crash if opened in a normal browser tab (no electron)
     window.electronAPI.getClipboard().then((text) => addToHistory(text));
     const removeListener = window.electronAPI.onClipboardUpdate(addToHistory);
-    return removeListener;
+    return removeListener; // react auto-calls this on unmount, unsubscribes the listener
   }, [addToHistory]);
+
+  // wrapped in useCallback (same reason as addToHistory above) so this function keeps
+  // the same identity across renders - otherwise the useEffect below would think its
+  // dependency changed every render and re-subscribe the listener every single time
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Escape') {
+      setMenuOpen(false);
+      setSelectingMode(false);
+      setSelectedList([]);
+    }
+    if (e.key === '/') {
+      // dont steal focus if the user is already typing somewhere (like a note input) -
+      // otherwise pressing "/" while writing a note would yank them into the search box
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      e.preventDefault();
+      searchInputRef.current.focus();
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown]);
+
 
   const handleCopy = async (text) => {
     if (window.electronAPI) {
@@ -67,7 +102,8 @@ export default function App() {
     setSelectedList([]);
   };
 
-  // adds or removes an item id from the selected list
+  // adds/removes an id from selectedList. its an array on purpose not a Set -
+  // keeps the order i clicked in, thats how the numbered badges on the cards work
   const toggleSelect = (id) => {
     setSelectedList((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
@@ -97,6 +133,9 @@ export default function App() {
     }).catch(() => {});
   };
 
+  // optimistic update - flips the star on screen right away instead of waiting for
+  // flask to respond. PATCH runs in the background (fire and forget, no error
+  // handling rn so if it fails the UI just stays wrong til next reload)
   const toggleFavorite = (id) => {
     setHistory((prev) => prev.map((i) => {
       if (i.id !== id) return i;
@@ -171,6 +210,7 @@ export default function App() {
                   placeholder="Search clipboard history..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  ref={searchInputRef}
                 />
               </div>
 
@@ -279,3 +319,4 @@ export default function App() {
     </div>
   );
 }
+

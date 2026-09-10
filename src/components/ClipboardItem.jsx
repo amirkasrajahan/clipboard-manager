@@ -14,7 +14,9 @@ export function ClipboardItem({ item,
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
-  // copies the text back to clipboard and shows "Copied!" for 1.5s
+  // copies text back to system clipboard (goes through electron ipc, or navigator.clipboard
+  // if theres no window.electronAPI) then flashes "copied!" for 1.5s. copied/expanded are
+  // LOCAL state to this card, not in App - so each card animates independently
   const handleClick = async () => {
     await onCopy(item.text);
     setCopied(true);
@@ -22,7 +24,8 @@ export function ClipboardItem({ item,
   };
 
   // toggles between showing full text vs first 100 chars
-  // stopPropagation so clicking expand doesn't also trigger copy
+  // e.stopPropagation() is important here - without it clicking expand would ALSO
+  // bubble up to the <li>'s onClick and trigger a copy/select, since this button lives inside it
   const handleExpand = (e) => {
     e.stopPropagation();
     setExpanded((prev) => !prev);

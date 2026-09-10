@@ -74,6 +74,9 @@ def update_item(item_id):
     item = db.get_or_404(ClipboardItem, item_id)
     data = request.get_json() or {}
 
+    # PATCH = only touch the fields that were actually sent, unlike PUT which
+    # would mean "replace the whole thing". thats why its 2 separate ifs -
+    # dont wanna wipe out favorite just bc the frontend only sent a note update
     if 'note' in data:
         item.note = data['note']
     if 'favorite' in data:
