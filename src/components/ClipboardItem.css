@@ -1,0 +1,147 @@
+.clipboard-item {
+  background-color: #1e1e20;
+  border: 1px solid #2a2a2d;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background 0.1s ease, border-color 0.1s ease;
+  position: relative; /* needed so the order badge/star can be positioned inside the card */
+  list-style: none;
+}
+
+.clipboard-item:hover {
+  background-color: #28282c;
+  border-color: #424246;
+}
+
+.select-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid #636366;
+  background-color: transparent;
+  color: #fff;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.select-badge.selected {
+  background-color: #3a3a3c;
+}
+
+.favorite-star {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #908f8f;
+  transition: color 0.2s ease, transform 0.15s ease;
+  line-height: 1;
+  user-select: none;
+}
+
+.favorite-star.active {
+  color: #f5a623;
+  transform: scale(1.1);
+}
+
+.item-text {
+  font-size: 13px;
+  line-height: 1.5;
+  word-break: break-all;
+  white-space: pre-wrap;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  color: #e8e8e8;
+  padding-left: 20px;
+}
+
+.search-highlight {
+  background-color: #f5a623;
+  color: #000;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.item-char-count {
+  font-size: 11px;
+  color: #555;
+  margin-top: 4px;
+}
+
+.expand-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 4px 0;
+  border-top: 1px solid #2a2a2d;
+  color: #666;
+  font-size: 11px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  user-select: none;
+}
+
+.expand-toggle:hover {
+  color: #aaa;
+}
+
+.expand-arrow {
+  display: inline-block;
+  transition: transform 0.2s ease;
+  transform: rotate(0deg);
+  font-size: 9px;
+}
+
+.expand-arrow.expanded {
+  transform: rotate(180deg);
+}
+
+.note-input-wrap {
+  margin-top: 8px;
+}
+
+.note-input {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #2a2a2d;
+  background-color: #141415;
+  color: #f0f0f0;
+  font-size: 12px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.item-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.item-timestamp {
+  font-size: 11px;
+  color: #555;
+}
+
+.copy-hint {
+  font-size: 11px;
+  color: #666;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.clipboard-item:hover .copy-hint {
+  opacity: 1;
+}
