@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ClipboardItem } from './components/ClipboardItem';
 import './App.css';
 
@@ -11,7 +11,7 @@ export default function App() {
   const [selectingMode, setSelectingMode] = useState(false);
   const [selectedList, setSelectedList] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [currentView, setCurrentView] = useState('history'); // 'history' | 'bench' | 'search'
+  const [currentView, setCurrentView] = useState('history'); // 'history' | 'bench' | 'favorites'
   const [benchText, setBenchText] = useState('');
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,11 +20,11 @@ export default function App() {
   // loads whatever's already saved in flask when the app starts (runs once, empty [] dep)
   useEffect(() => {
     fetch(`${API}/history`)
-      .then((r) => r.json())
+      .then((response) => response.json())
       .then((items) => {
         // API returns { id, text, timestamp, note, favorite }
         // reshape to what the UI expects: { id, text, time, note, favorite }
-        setHistory(items.map((i) => ({ ...i, time: new Date(i.timestamp) })));
+        setHistory(items.map((item) => ({ ...item, time: new Date(item.timestamp) })));
       })
       .catch(() => {}); // backend might not be running yet — fail silently
   }, []);
@@ -33,13 +33,13 @@ export default function App() {
   // below). doesnt touch history state right away - sends to flask first and only
   // updates the UI once flask sends back the saved row (with a real id + timestamp)
   const addToHistory = useCallback((text) => {
-    if (!text || !text.trim()) return;
+    if (!text || !text.trim()) return; // ignore empty strings or whitespace-only strings
     fetch(`${API}/history`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text }),
     })
-      .then((r) => r.json())
+      .then((response) => response.json())
       .then((item) => {
         setHistory((prev) => {
           // backend deduplicates; only prepend if it's genuinely new
@@ -177,6 +177,7 @@ export default function App() {
           {[
             { label: '📋  History', view: 'history' },
             { label: '⌨️  Concat Bench', view: 'bench' },
+            { label: "Favorites", view: 'favorites' },
           ].map(({ label, view }) => (
             <button
               key={view}
@@ -316,7 +317,43 @@ export default function App() {
         </div>
       )}
 
+      {/* favorites view */}
+      {currentView === 'favorites' && (
+        <div>
+          {history.filter((item) => item.favorite).length === 0 ? (
+            // empty state
+            <div className="empty-state">
+              <div className="empty-icon">⭐</div>
+              <div>No favorites yet.</div>
+              <div style={{ marginTop: '8px', fontSize: '12px' }}>
+                Click the star on a clipboard item to add it to your favorites.
+              </div>
+            </div>
+          ) : (
+            <ul className="item-list">
+              {history.filter((item) => item.favorite).map((item) => (
+                <ClipboardItem
+                  key={item.id}
+                  item={item}
+                  onCopy={handleCopy}
+                  isSelected={selectedList.includes(item.id)}
+                  selectingMode={selectingMode}
+                  onToggle={toggleSelect}
+                  selectionOrder={selectedList.indexOf(item.id) + 1}
+                  searchQuery={searchQuery}
+                  note={item.note || ''}
+                  onNoteChange={(value) => handleNoteChange(item.id , value)}
+                  isFavorite={item.favorite || false}
+                  onToggleFavorite={() => toggleFavorite(item.id)}
+                />
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
     </div>
   );
 }
+
 
