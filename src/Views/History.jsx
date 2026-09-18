@@ -1,4 +1,5 @@
 import { ClipboardItem } from '../components/ClipboardItem';
+import "../App.css"
 
 export function History({
         history,
@@ -15,7 +16,8 @@ export function History({
         setCurrentView,
         menuOpen,
         setMenuOpen,
-        searchInputRef
+        searchInputRef,
+        filteredHistory
 }) {
 
       return (
