@@ -91,4 +91,4 @@ def update_item(item_id):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # creates clipboard.db and the table on first run
-    app.run(port=5000, debug=True)
+    app.run(port=5001, debug=True)

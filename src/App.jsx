@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ClipboardItem } from './components/ClipboardItem';
+import { ConcatBench } from './Views/ConcatBench';
 import './App.css';
 
 
 // this is the URL of the backend flask server. in production it runs on 5000, in dev mode it runs on 5000 too (but you have to start it manually with `npm run backend`).
-const API = 'http://localhost:5000';
+const API = 'http://localhost:5001';
 
 export default function App() {
   const [history, setHistory] = useState([]);
@@ -279,43 +280,14 @@ export default function App() {
           )}
         </div>
       )}
-
-      {/* concat bench view */}
       {currentView === 'bench' && (
-        <div className="bench-view">
-
-          {/* title + char count */}
-          <div className="bench-header">
-            <h2 className="bench-title">Concat Bench</h2>
-            <span className="bench-char-count">{benchText.length} chars</span>
-          </div>
-
-          {/* the editable textarea - takes up all available space */}
-          <textarea
-            className="bench-textarea"
-            value={benchText}
-            onChange={(e) => setBenchText(e.target.value)}
-            placeholder="Select items from History and click 'Add to Bench'..."
-          />
-
-          {/* bottom buttons */}
-          <div className="bench-actions">
-            <button className="toolbar-btn" onClick={() => setBenchText('')}>
-              Clear
-            </button>
-            <button
-              className="toolbar-btn primary"
-              onClick={() => handleCopy(benchText).then(() => {
-                setCopied(true);
-                setTimeout(() => setCopied(false), 1500);
-              })}
-            >
-              {copied && benchText !== '' ? <span className="copied-badge">Copied!</span> : 'Copy All'}
-            </button>
-          </div>
-
-        </div>
+      <ConcatBench 
+        handleCopy = {handleCopy}
+        benchText = {benchText}
+        setBenchText = {setBenchText}
+      />
       )}
+      
 
       {/* favorites view */}
       {currentView === 'favorites' && (
