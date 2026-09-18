@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import '../App.css';
 export function ConcatBench(
-        handleCopy,
+        {handleCopy,
         benchText,
-        setBenchText,
+        setBenchText}
         ) {
   const [copied, setCopied] = useState(false);
 
