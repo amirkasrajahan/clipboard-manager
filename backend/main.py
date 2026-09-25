@@ -61,6 +61,8 @@ def add_item():
     """Add a new clipboard entry. Body: { text: string }"""
     data = request.get_json()
     text = (data or {}).get('text', '').strip()
+    if len(text) > 10000:
+        return jsonify({'error': 'text is too long'}), 400
     if not text:
         return jsonify({'error': 'text is required'}), 400
 
