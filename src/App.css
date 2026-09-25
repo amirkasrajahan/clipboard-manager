@@ -203,3 +203,32 @@
   margin-top: 12px;
   gap: 8px;
 }
+
+.error-toast {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  background-color: #2a1418;
+  border: 1px solid #6b2530;
+  color: #f0b6bd;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+.error-toast-close {
+  background: none;
+  border: none;
+  color: #f0b6bd;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}

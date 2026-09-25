@@ -19,6 +19,7 @@ export default function App() {
   const [benchText, setBenchText] = useState('');
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [error, setError] = useState(null); // toast message shown at the bottom, or null when hidden
   const searchInputRef = useRef(null)
 
   // loads whatever's already saved in flask when the app starts (runs once, empty [] dep)
@@ -30,7 +31,7 @@ export default function App() {
         // reshape to what the UI expects: { id, text, time, note, favorite }
         setHistory(items.map((item) => ({ ...item, time: new Date(item.timestamp) })));
       })
-      .catch(() => {}); // backend might not be running yet — fail silently
+      .catch(() => setError("Couldn't load clipboard history — is the backend running?"));
   }, []);
 
   // this is what electron.js's clipboard-update event actually calls (see useEffect
@@ -45,13 +46,12 @@ export default function App() {
     })
       .then((response) => response.json())
       .then((item) => {
-        setHistory((prev) => {
-          // backend deduplicates; only prepend if it's genuinely new
-          if (prev.length > 0 && prev[0].id === item.id) return prev;
-          return [{ ...item, time: new Date(item.timestamp) }, ...prev].slice(0, 50);
-        });
+      setHistory((prev) => {
+        const withoutOldEntry = prev.filter((i) => i.id !== item.id);
+        return [{ ...item, time: new Date(item.timestamp) }, ...withoutOldEntry].slice(0, 50);
+      });
       })
-      .catch(() => {});
+      .catch(() => setError("Couldn't save clipboard item"));
   }, []);
 
   // THIS is where electron actually connects to react. window.electronAPI comes from
@@ -136,7 +136,7 @@ export default function App() {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ note: value }),
-    }).catch(() => {});
+    }).catch(() => setError("Couldn't save note"));
   };
 
   // optimistic update - flips the star on screen right away instead of waiting for
@@ -150,7 +150,7 @@ export default function App() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ favorite: next }),
-      }).catch(() => {});
+      }).catch(() => setError("Couldn't update favorite"));
       return { ...i, favorite: next };
     }));
   };
@@ -168,7 +168,7 @@ export default function App() {
   // delete each selected item from the backend, then remove from local state
   const handleDeleteSelected = () => {
     selectedList.forEach((id) =>
-      fetch(`${API}/history/${id}`, { method: 'DELETE' }).catch(() => {})
+      fetch(`${API}/history/${id}`, { method: 'DELETE' }).catch(() => setError("Couldn't delete item"))
     );
     setHistory((prev) => prev.filter((item) => !selectedList.includes(item.id)));
     setSelectedList([]);
@@ -256,6 +256,14 @@ export default function App() {
         handleNoteChange={handleNoteChange}
         searchQuery={searchQuery}
         />
+      )}
+
+      {/* error toast - sits at the bottom, stays until dismissed or replaced */}
+      {error && (
+        <div className="error-toast">
+          <span>{error}</span>
+          <button className="error-toast-close" onClick={() => setError(null)}>×</button>
+        </div>
       )}
 
     </div>
