@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -94,4 +95,4 @@ def update_item(item_id):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # creates clipboard.db and the table on first run
-    app.run(port=5001, debug=True)
+    app.run(port=5001, debug=os.environ.get('FLASK_DEBUG') == '1')
