@@ -32,6 +32,21 @@ class ClipboardItem(db.Model):
         }
 
 
+# ---------- Error handlers ----------
+# Flask's default 404/400 pages are HTML, which breaks the "always JSON" API
+# contract every other route follows. These make db.get_or_404 and malformed
+# request bodies come back as JSON too.
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({'error': 'not found'}), 404
+
+
+@app.errorhandler(400)
+def bad_request(e):
+    return jsonify({'error': 'bad request'}), 400
+
+
 # ---------- Routes ----------
 
 @app.route('/history', methods=['GET'])
