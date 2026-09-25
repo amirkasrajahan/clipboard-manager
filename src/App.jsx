@@ -120,7 +120,9 @@ export default function App() {
       const query = searchQuery.toLowerCase();
       let score = 1;
       if (text.startsWith(query)) score = 3;
-      else if (new RegExp(`\\b${query}\\b`).test(text)) score = 2;
+      // whole-word match, without building a regex out of raw user input
+      // (a bare "(" or "*" in the search box would otherwise crash RegExp)
+      else if (text.split(/\W+/).includes(query)) score = 2;
       return { ...item, score };
     })
     .sort((a, b) => b.score - a.score);
