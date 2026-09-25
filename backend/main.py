@@ -47,6 +47,11 @@ def bad_request(e):
     return jsonify({'error': 'bad request'}), 400
 
 
+@app.errorhandler(500)
+def server_error(e):
+    return jsonify({'error': 'internal server error'}), 500
+
+
 # ---------- Routes ----------
 
 @app.route('/history', methods=['GET'])
@@ -60,7 +65,10 @@ def get_history():
 def add_item():
     """Add a new clipboard entry. Body: { text: string }"""
     data = request.get_json()
-    text = (data or {}).get('text', '').strip()
+    text = (data or {}).get('text', '')
+    if not isinstance(text, str):
+        return jsonify({'error': 'text must be a string'}), 400
+    text = text.strip()
     if len(text) > 10000:
         return jsonify({'error': 'text is too long'}), 400
     if not text:
