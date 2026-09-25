@@ -6,7 +6,8 @@ import { FavoritesView } from './Views/FavoritesView';
 import './App.css';
 
 
-// this is the URL of the backend flask server. in production it runs on 5000, in dev mode it runs on 5001 too (but you have to start it manually with `npm run backend`).
+// URL of the backend Flask server (always port 5001, no separate prod port).
+// start it manually before running the app: cd backend && python main.py
 const API = 'http://localhost:5001';
 
 export default function App() {
