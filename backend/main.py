@@ -48,10 +48,13 @@ def add_item():
     if not text:
         return jsonify({'error': 'text is required'}), 400
 
-    # skip exact duplicates — don't store the same text twice in a row
-    latest = ClipboardItem.query.order_by(ClipboardItem.timestamp.desc()).first()
-    if latest and latest.text == text:
-        return jsonify(latest.to_dict()), 200
+    # if this text exists anywhere in history, bump it to the top instead of
+    # inserting a duplicate row (handles copy A, B, A — not just back-to-back A, A)
+    existing = ClipboardItem.query.filter_by(text=text).first()
+    if existing:
+        existing.timestamp = datetime.utcnow()
+        db.session.commit()
+        return jsonify(existing.to_dict()), 200
 
     item = ClipboardItem(text=text)
     db.session.add(item)

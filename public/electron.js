@@ -36,6 +36,7 @@ function createWindow() {
 function startClipboardPolling() {
   clipboardIntervalId = setInterval(() => {
     const current = clipboard.readText();
+    //lastClipboardContent remembers the last value. Only if the text is new does it act. Without this, it would re-send the same text every second.
     if (current && current !== lastClipboardContent) {
       lastClipboardContent = current;
       if (mainWindow && !mainWindow.isDestroyed()) {
@@ -44,6 +45,7 @@ function startClipboardPolling() {
     }
   }, 1000);
 }
+
 
 ipcMain.handle('get-clipboard', () => {
   return clipboard.readText();

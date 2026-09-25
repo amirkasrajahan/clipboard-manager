@@ -6,7 +6,7 @@ import { FavoritesView } from './Views/FavoritesView';
 import './App.css';
 
 
-// this is the URL of the backend flask server. in production it runs on 5000, in dev mode it runs on 5000 too (but you have to start it manually with `npm run backend`).
+// this is the URL of the backend flask server. in production it runs on 5000, in dev mode it runs on 5001 too (but you have to start it manually with `npm run backend`).
 const API = 'http://localhost:5001';
 
 export default function App() {
