@@ -5,7 +5,7 @@ from flask_cors import CORS
 from datetime import datetime
 
 app = Flask(__name__)
-CORS(app)  # allows the React renderer (localhost:3000) to call this API
+CORS(app, origins=["http://localhost:3000"])  # only the React dev server, not any origin
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///clipboard.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
