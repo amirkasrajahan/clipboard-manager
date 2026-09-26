@@ -7,6 +7,8 @@ scratchpad for combining multiple copied snippets into one block of text.
 Built with Electron + React on the frontend and a small Flask + SQLite backend
 for persistence.
 
+<img src="docs/screenshot.png" alt="Clipboard Manager screenshot" width="400">
+
 ## Features
 
 - **Auto-tracking** — polls the system clipboard every second and saves new

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Electron + React clipboard manager",
   "main": "public/electron.js",
+  "license": "MIT",
   "homepage": "./",
   "scripts": {
     "start": "react-scripts start",
