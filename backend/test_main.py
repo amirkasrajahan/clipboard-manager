@@ -18,10 +18,12 @@ def test_get_history_empty(client):
     assert response.status_code == 200
     assert response.get_json() == []
 
-def test_get_history_full(client):
-    
+def test_get_history_with_more_than_50_items(client):
+    for i in range(51):
+        client.post('/history', json= {'text': f"text{i+1}"})
     response = client.get('/history')
     assert response.status_code == 200
+    assert len(response.get_json()) == 50
 
 def test_post_creates_item(client):
     response = client.post('/history', json={'text': 'hello'})
