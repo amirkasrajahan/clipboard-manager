@@ -10,11 +10,18 @@ import './App.css';
 // start it manually before running the app: cd backend && python main.py
 const API = 'http://localhost:5001';
 
+// the 3 views, in tab-bar order — module scope since it's static, not
+// re-created every render
+const TABS = [
+  { label: 'History', icon: '📋', view: 'history' },
+  { label: 'Bench', icon: '⌨️', view: 'bench' },
+  { label: 'Favorites', icon: '⭐', view: 'favorites' },
+];
+
 export default function App() {
   const [history, setHistory] = useState([]);
   const [selectingMode, setSelectingMode] = useState(false);
   const [selectedList, setSelectedList] = useState([]);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [currentView, setCurrentView] = useState('history'); // 'history' | 'bench' | 'favorites'
   const [benchText, setBenchText] = useState('');
   const [copied, setCopied] = useState(false);
@@ -70,7 +77,6 @@ export default function App() {
   // dependency changed every render and re-subscribe the listener every single time
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Escape') {
-      setMenuOpen(false);
       setSelectingMode(false);
       setSelectedList([]);
     }
@@ -161,7 +167,6 @@ export default function App() {
     const concatenatedText = selectedItems.map((item) => item.text).join('\n\n');
     setBenchText(concatenatedText);
     setCurrentView('bench');
-    setMenuOpen(false);
     setSelectingMode(false);
   };
 
@@ -182,11 +187,6 @@ export default function App() {
       <header className="app-header">
         <h1 className="app-title">Clipboard Manager</h1>
 
-        {/* hamburger menu button */}
-        <button className="menu-btn" onClick={() => setMenuOpen((prev) => !prev)}>
-          ☰
-        </button>
-
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span className="header-count">{history.length} items</span>
           {history.length > 0 && (
@@ -197,24 +197,24 @@ export default function App() {
         </div>
       </header>
 
-      {/* dropdown menu - shows when hamburger is clicked */}
-      {menuOpen && (
-        <div className="menu-dropdown">
-          {[
-            { label: '📋  History', view: 'history' },
-            { label: '⌨️  Concat Bench', view: 'bench' },
-            { label: "Favorites", view: 'favorites' },
-          ].map(({ label, view }) => (
-            <button
-              key={view}
-              onClick={() => { setCurrentView(view); setMenuOpen(false); }}
-              className={`menu-item ${currentView === view ? 'active' : ''}`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
+      {/* always-visible segmented tab bar — no extra click to switch views,
+          unlike the hamburger dropdown this replaces */}
+      <nav className="tab-bar">
+        <div
+          className="tab-indicator"
+          style={{ transform: `translateX(${TABS.findIndex((t) => t.view === currentView) * 100}%)` }}
+        />
+        {TABS.map(({ label, icon, view }) => (
+          <button
+            key={view}
+            onClick={() => setCurrentView(view)}
+            className={`tab-btn ${currentView === view ? 'active' : ''}`}
+          >
+            <span className="tab-icon">{icon}</span>
+            {label}
+          </button>
+        ))}
+      </nav>
 
       {/* history view */}
       {currentView === 'history' && (
