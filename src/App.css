@@ -129,7 +129,7 @@
 }
 
 .search-input {
-  width: 95%;
+  width: 100%;
   padding: 8px 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-strong);
@@ -151,7 +151,7 @@
   list-style: none;
   margin: 0;
   overflow-y: auto;
-  max-height: calc(100vh - 60px);
+  max-height: calc(100vh - 90px);
 }
 
 @keyframes toolbarIn {
@@ -240,7 +240,9 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 61px);
+  /* 90px = .app-header (48px) + .tab-bar (42px), measured directly — update
+     this if either one's height changes, or the actions row gets clipped */
+  height: calc(100vh - 90px);
   box-sizing: border-box;
 }
 
