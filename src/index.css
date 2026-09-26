@@ -2,14 +2,105 @@
   box-sizing: border-box;
 }
 
+/* ---------- Design tokens ----------
+   Centralizing colors/motion/radius here means every component references
+   one source of truth instead of repeating the same hex codes — change a
+   value once here and it updates everywhere it's used. */
+:root {
+  /* surfaces, darkest to lightest */
+  --bg-base: #121213;
+  --bg-surface: #1c1c1f;
+  --bg-surface-2: #29292c;
+  --bg-surface-3: #38383c;
+
+  /* borders */
+  --border: #2a2a2e;
+  --border-strong: #3a3a3f;
+  --border-hover: #4c4c52;
+
+  /* text */
+  --text-primary: #f5f5f6;
+  --text-secondary: #b7b7bc;
+  --text-muted: #6f6f75;
+  --text-faint: #4a4a4f;
+
+  /* accent — primary interactive color (selection, links, focus, primary buttons) */
+  --accent: #7c93ff;
+  --accent-hover: #93a6ff;
+  --accent-soft: rgba(124, 147, 255, 0.16);
+
+  /* favorite — kept separate from --accent so "starred" stays its own color */
+  --favorite: #f5a623;
+  --favorite-glow: rgba(245, 166, 35, 0.35);
+
+  /* status */
+  --danger-bg: #2a1418;
+  --danger-border: #6b2530;
+  --danger-text: #f0b6bd;
+  --success: #4caf50;
+
+  /* motion */
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-snap: cubic-bezier(0.34, 1.56, 0.64, 1); /* slight overshoot — playful "pop" */
+  --t-fast: 0.15s;
+  --t-base: 0.22s;
+
+  /* radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: var(--bg-base);
+}
+
+/* visible, theme-matched focus ring for keyboard users — the default browser
+   outline clashes with a dark background, but removing it entirely (as the
+   inputs below do) without a replacement breaks accessibility */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* custom scrollbar to match the dark theme instead of the default light one */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border-radius: 10px;
+  border: 2px solid var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--border-hover);
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* shared "Copied!" badge, used by clipboard cards and the Concat Bench */
 .copied-badge {
   font-size: 11px;
-  color: #4caf50;
+  color: var(--success);
   font-weight: 500;
+  display: inline-block;
+  animation: popIn var(--t-base) var(--ease-snap);
 }
