@@ -24,6 +24,7 @@ export default function App() {
   const [selectedList, setSelectedList] = useState([]);
   const [currentView, setCurrentView] = useState('history'); // 'history' | 'bench' | 'favorites'
   const [benchText, setBenchText] = useState('');
+  const [benchItemCount, setBenchItemCount] = useState(0); // how many items the current bench text came from
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState(null); // toast message shown at the bottom, or null when hidden
@@ -166,6 +167,7 @@ export default function App() {
     const selectedItems = selectedList.map((id) => history.find((item) => item.id === id));
     const concatenatedText = selectedItems.map((item) => item.text).join('\n\n');
     setBenchText(concatenatedText);
+    setBenchItemCount(selectedList.length);
     setCurrentView('bench');
     setSelectingMode(false);
   };
@@ -189,7 +191,7 @@ export default function App() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span className="header-count">{history.length} items</span>
-          {history.length > 0 && (
+          {currentView !== 'bench' && history.length > 0 && (
             <button className="select-btn" onClick={handleSelect}>
               {selectingMode ? 'Cancel' : 'Select'}
             </button>
@@ -236,10 +238,11 @@ export default function App() {
         />
       )}
       {currentView === 'bench' && (
-      <ConcatBench 
+      <ConcatBench
         handleCopy = {handleCopy}
         benchText = {benchText}
         setBenchText = {setBenchText}
+        benchItemCount = {benchItemCount}
       />
       )}
       

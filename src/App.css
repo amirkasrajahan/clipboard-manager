@@ -263,6 +263,17 @@
   color: var(--text-muted);
 }
 
+.bench-count-banner {
+  background-color: var(--accent-soft);
+  color: var(--accent-hover);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  animation: popIn var(--t-base) var(--ease-smooth);
+}
+
 .bench-textarea {
   flex: 1;
   width: 100%;
