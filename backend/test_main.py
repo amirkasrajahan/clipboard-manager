@@ -105,3 +105,44 @@ def test_too_long_text(client):
     response = client.post('/history', json={'text': text})
     assert response.status_code == 400
     assert response.get_json() == {'error': 'text is too long'}
+
+
+def test_patch_missing_item_returns_json_404(client):
+    response = client.patch('/history/9999', json={'favorite': True})
+    assert response.status_code == 404
+    assert response.get_json() == {'error': 'not found'}
+
+
+def test_patch_favorite_does_not_wipe_note(client):
+    # the reverse of test_patch_note_does_not_wipe_favorite — updating
+    # favorite alone shouldn't erase a note that was set earlier
+    item = client.post('/history', json={'text': 'hello'}).get_json()
+    client.patch(f'/history/{item["id"]}', json={'note': 'existing note'})
+
+    response = client.patch(f'/history/{item["id"]}', json={'favorite': True})
+
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body['favorite'] is True
+    assert body['note'] == 'existing note'
+
+
+def test_patch_empty_body_changes_nothing(client):
+    item = client.post('/history', json={'text': 'hello'}).get_json()
+
+    response = client.patch(f'/history/{item["id"]}', json={})
+
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body['note'] == item['note']
+    assert body['favorite'] == item['favorite']
+
+
+def test_cors_blocks_other_origins(client):
+    # verifies the CORS(app, origins=[...]) restriction actually works —
+    # the allowed origin gets the header, anything else doesn't
+    allowed = client.get('/history', headers={'Origin': 'http://localhost:3000'})
+    assert allowed.headers.get('Access-Control-Allow-Origin') == 'http://localhost:3000'
+
+    blocked = client.get('/history', headers={'Origin': 'http://evil.com'})
+    assert 'Access-Control-Allow-Origin' not in blocked.headers
