@@ -18,6 +18,10 @@ def test_get_history_empty(client):
     assert response.status_code == 200
     assert response.get_json() == []
 
+def test_get_history_full(client):
+    
+    response = client.get('/history')
+    assert response.status_code == 200
 
 def test_post_creates_item(client):
     response = client.post('/history', json={'text': 'hello'})
@@ -49,6 +53,12 @@ def test_post_duplicate_bumps_instead_of_inserting(client):
     # and history still only has 2 items, not 3
     history = client.get('/history').get_json()
     assert len(history) == 2
+
+    # A→B→A should reorder to [A, B] — the re-copied item moves back to
+    # index 0, not just avoid a duplicate row. Compare only 'text', not the
+    # whole dict, since 'timestamp' is expected to differ after the bump.
+    history = client.get('/history').get_json()
+    assert history[0]['text'] == first['text']
 
 
 def test_patch_note_does_not_wipe_favorite(client):
