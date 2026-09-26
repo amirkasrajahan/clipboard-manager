@@ -5,6 +5,21 @@ set -e
 
 cd "$(dirname "$0")"
 
+# venv and node_modules are gitignored, so a fresh clone won't have them yet.
+# Fail loudly here instead of letting the background jobs below fail
+# silently and hang the "waiting for backend/frontend" loops forever.
+if [ ! -d backend/venv ]; then
+  echo "Backend not set up yet. Run this once:"
+  echo "  cd backend && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt"
+  exit 1
+fi
+
+if [ ! -d node_modules ]; then
+  echo "Frontend not set up yet. Run this once:"
+  echo "  npm install"
+  exit 1
+fi
+
 echo "Starting backend..."
 (cd backend && source venv/bin/activate && python main.py) &
 BACKEND_PID=$!
