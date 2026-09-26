@@ -8,8 +8,10 @@ let clipboardIntervalId;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 500,
-    height: 700,
+    width: 520,
+    height: 760,
+    minWidth: 400,
+    minHeight: 500,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
