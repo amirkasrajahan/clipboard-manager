@@ -24,9 +24,8 @@ function createWindow() {
 
   mainWindow.loadURL(url);
 
-  if (isDev) {
-    mainWindow.webContents.openDevTools({ mode: 'detach' });
-  }
+  // DevTools no longer auto-open in dev mode. Open manually when needed:
+  // Cmd+Option+I, or View > Toggle Developer Tools.
 
   mainWindow.on('closed', () => {
     mainWindow = null;
