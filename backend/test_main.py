@@ -91,3 +91,17 @@ def test_delete_missing_item_returns_json_404(client):
     response = client.delete('/history/9999')
     assert response.status_code == 404
     assert response.get_json() == {'error': 'not found'}
+
+def test_input_isinstanceof_string(client):
+    response = client.post('/history', json={'text': 1234})
+    assert response.status_code == 400
+    assert response.get_json() == {'error': 'text must be a string'}
+
+def test_too_long_text(client):
+    text = ''
+    for i in range(10001):
+        text += 'a'
+    assert len(text) == 10001
+    response = client.post('/history', json={'text': text})
+    assert response.status_code == 400
+    assert response.get_json() == {'error': 'text is too long'}
