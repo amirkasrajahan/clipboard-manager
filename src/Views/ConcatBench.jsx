@@ -4,7 +4,8 @@ import '../App.css';
 export function ConcatBench(
         {handleCopy,
         benchText,
-        setBenchText}
+        setBenchText,
+        benchItemCount}
         ) {
   const [copied, setCopied] = useState(false);
 
@@ -16,6 +17,14 @@ export function ConcatBench(
             <h2 className="bench-title">Concat Bench</h2>
             <span className="bench-char-count">{benchText.length} chars</span>
           </div>
+
+          {/* only meaningful once something's actually been added — hides on
+              Clear or when this view is opened directly with nothing chosen */}
+          {benchText.trim() !== '' && (
+            <div className="bench-count-banner">
+              {benchItemCount} item{benchItemCount !== 1 ? 's' : ''} chosen to concat
+            </div>
+          )}
 
           {/* the editable textarea - takes up all available space */}
           <textarea
