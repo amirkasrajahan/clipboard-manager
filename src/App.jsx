@@ -52,12 +52,17 @@ export default function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text }),
     })
-      .then((response) => response.json())
-      .then((item) => {
-      setHistory((prev) => {
-        const withoutOldEntry = prev.filter((i) => i.id !== item.id);
-        return [{ ...item, time: new Date(item.timestamp) }, ...withoutOldEntry].slice(0, 50);
-      });
+      .then((response) => response.json().then((item) => ({ response, item })))
+      .then(({ response, item }) => {
+        if (!response.ok) {
+          // backend rejected it (e.g. too long) — show why, don't store the error as an item
+          setError(item.error || "Couldn't save clipboard item");
+          return;
+        }
+        setHistory((prev) => {
+          const withoutOldEntry = prev.filter((i) => i.id !== item.id);
+          return [{ ...item, time: new Date(item.timestamp) }, ...withoutOldEntry].slice(0, 50);
+        });
       })
       .catch(() => setError("Couldn't save clipboard item"));
   }, []);
