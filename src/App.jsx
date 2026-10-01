@@ -148,7 +148,12 @@ export default function App() {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ note: value }),
-    }).catch(() => setError("Couldn't save note"));
+    })
+      .then((response) => response.json().then((item) => ({ response, item })))
+      .then(({ response, item }) => {
+        if (!response.ok) setError(item.error || "Couldn't save note");
+      })
+      .catch(() => setError("Couldn't save note"));
   };
 
   // optimistic update - flips the star on screen right away instead of waiting for
@@ -162,7 +167,12 @@ export default function App() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ favorite: next }),
-      }).catch(() => setError("Couldn't update favorite"));
+      })
+        .then((response) => response.json().then((item) => ({ response, item })))
+        .then(({ response, item }) => {
+          if (!response.ok) setError(item.error || "Couldn't update favorite");
+        })
+        .catch(() => setError("Couldn't update favorite"));
       return { ...i, favorite: next };
     }));
   };
@@ -180,7 +190,12 @@ export default function App() {
   // delete each selected item from the backend, then remove from local state
   const handleDeleteSelected = () => {
     selectedList.forEach((id) =>
-      fetch(`${API}/history/${id}`, { method: 'DELETE' }).catch(() => setError("Couldn't delete item"))
+      fetch(`${API}/history/${id}`, { method: 'DELETE' })
+        .then((response) => response.json().then((item) => ({ response, item })))
+        .then(({ response, item }) => {
+          if (!response.ok) setError(item.error || "Couldn't delete item");
+        })
+        .catch(() => setError("Couldn't delete item"))
     );
     setHistory((prev) => prev.filter((item) => !selectedList.includes(item.id)));
     setSelectedList([]);
